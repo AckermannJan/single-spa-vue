@@ -14,32 +14,7 @@ export default [
 function createConfig(format) {
   return [
     {
-      input: "./src/single-spa-vue.ts",
-      output: {
-        name: format === "umd" ? "singleSpaVue" : undefined,
-        sourcemap: true,
-        format: format,
-        file: `dist/single-spa-vue.${format}.js`,
-        globals: {
-          vue: "vue",
-        },
-      },
-      plugins: [
-        babel({
-          exclude: "node_modules/**",
-          babelHelpers: "inline",
-        }),
-        resolve(),
-        commonjs(),
-        terser(),
-        typescript({
-          tsconfig: "./tsconfig.build.json",
-        }),
-      ],
-      external: ["vue", "vue2"],
-    },
-    {
-      input: "./src/parcel.ts",
+      input: "./src/index.ts",
       output: {
         name: format === "umd" ? "singleSpaVue" : undefined,
         sourcemap: true,

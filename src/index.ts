@@ -1,2 +1,2 @@
-export * from "./parcel";
-export * from "./single-spa-vue";
+export { default } from "./parcel";
+export { default as singleSpaVue } from "./single-spa-vue";
