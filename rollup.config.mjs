@@ -2,22 +2,27 @@ import { babel } from "@rollup/plugin-babel";
 import resolve from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
 import terser from "@rollup/plugin-terser";
+import typescript from "@rollup/plugin-typescript";
 
 export default [
   ...createConfig("umd"),
   ...createConfig("esm"),
+  ...createConfig("cjs"),
   ...createConfig("system"),
 ];
 
 function createConfig(format) {
   return [
     {
-      input: "./src/single-spa-vue.js",
+      input: "./src/single-spa-vue.ts",
       output: {
-        dir: `dist/${format}`,
-        name: format === "umd" ? "singleSpaVue" : null,
+        name: format === "umd" ? "singleSpaVue" : undefined,
         sourcemap: true,
         format: format,
+        file: `dist/single-spa-vue.${format}.js`,
+        globals: {
+          vue: "vue",
+        },
       },
       plugins: [
         babel({
@@ -27,15 +32,22 @@ function createConfig(format) {
         resolve(),
         commonjs(),
         terser(),
+        typescript({
+          tsconfig: "./tsconfig.build.json",
+        }),
       ],
+      external: ["vue", "vue2"],
     },
     {
-      input: "./src/parcel.js",
+      input: "./src/parcel.ts",
       output: {
-        dir: `dist/${format}`,
-        name: format === "umd" ? "singleSpaVueParcel" : null,
+        name: format === "umd" ? "singleSpaVue" : undefined,
         sourcemap: true,
         format,
+        file: `dist/single-spa-vue.${format}.js`,
+        globals: {
+          vue: "vue",
+        },
       },
       plugins: [
         babel({
@@ -45,8 +57,11 @@ function createConfig(format) {
         resolve(),
         commonjs(),
         terser(),
+        typescript({
+          tsconfig: "./tsconfig.build.json",
+        }),
       ],
-      external: ["vue"],
+      external: ["vue", "vue2"],
     },
   ];
 }
