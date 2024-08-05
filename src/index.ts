@@ -1,2 +1,2 @@
-export * from './parcel'
-export * from './single-spa-vue'
+export * from "./parcel";
+export * from "./single-spa-vue";
