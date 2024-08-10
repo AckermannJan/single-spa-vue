@@ -199,8 +199,6 @@ class SingleSpaVue {
 
     if (this.isVue3(opts)) {
       const currentInstance = instance as InstanceVue3;
-      console.log(appOptions);
-      console.log(opts.createApp);
       currentInstance.vueInstance = opts.createApp(
         appOptions as unknown as FunctionalComponent,
       );
