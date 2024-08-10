@@ -1,9 +1,16 @@
-import type { App, ComponentPublicInstance, Component } from "vue";
+import type {
+  App,
+  ComponentPublicInstance,
+  Component,
+  CreateAppFunction,
+  FunctionalComponent,
+} from "vue";
 import type {
   VueConstructor,
   ComponentPublicInstance as ComponentPublicInstanceVue2,
   h as H,
   Component as ComponentVue2,
+  FunctionalComponentOptions,
 } from "vue2";
 
 interface AppOptionsObject {
@@ -20,7 +27,6 @@ export type AppOptionsFunction = (
 type AppOptions = AppOptionsObject | AppOptionsFunction;
 
 interface BaseSingleSpaVueOptions {
-  appOptions: AppOptions;
   template?: string;
   loadRootComponent?(): Promise<Component | ComponentVue2>;
   replaceMode?: boolean;
@@ -28,13 +34,17 @@ interface BaseSingleSpaVueOptions {
 }
 
 type SingleSpaOptsVue2 = BaseSingleSpaVueOptions & {
+  vueVersion: 2;
+  appOptions: AppOptions & FunctionalComponentOptions;
   Vue: VueConstructor;
-  handleInstance?(instance: Vue, props: Props): void | Promise<void>;
+  handleInstance?(app: Vue, props: Props): Promise<void> | void;
 };
 
 type SingleSpaOptsVue3 = BaseSingleSpaVueOptions & {
-  createApp(appOptions: AppOptions): App;
-  handleInstance?(instance: App<Element>, props: Props): void | Promise<void>;
+  vueVersion: 3;
+  appOptions: AppOptions & FunctionalComponent;
+  createApp: CreateAppFunction<Element>;
+  handleInstance?(app: App, props: Props): Promise<void> | void;
 };
 
 export type SingleSpaVueOpts = SingleSpaOptsVue2 | SingleSpaOptsVue3;
@@ -51,7 +61,7 @@ type InstanceVue2 = BaseInstance & {
 
 type InstanceVue3 = BaseInstance & {
   root?: ComponentPublicInstance;
-  vueInstance?: App;
+  vueInstance?: App<Element>;
 };
 
 type Instance = InstanceVue2 | InstanceVue3;
@@ -112,7 +122,7 @@ class SingleSpaVue {
     props: Props,
   ): Promise<AppOptionsObject> {
     if (typeof opts.appOptions === "function") {
-      return opts.appOptions(opts, props);
+      return (opts.appOptions as AppOptionsFunction)(opts, props);
     } else {
       return Promise.resolve({ ...opts.appOptions });
     }
@@ -189,7 +199,11 @@ class SingleSpaVue {
 
     if (this.isVue3(opts)) {
       const currentInstance = instance as InstanceVue3;
-      currentInstance.vueInstance = opts.createApp(appOptions);
+      console.log(appOptions);
+      console.log(opts.createApp);
+      currentInstance.vueInstance = opts.createApp(
+        appOptions as unknown as FunctionalComponent,
+      );
       if (opts.handleInstance) {
         await opts.handleInstance(currentInstance.vueInstance, props);
         currentInstance.root = currentInstance.vueInstance?.mount(

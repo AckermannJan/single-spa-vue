@@ -9,8 +9,7 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/single-spa-vue.esm.js",
-      "require": "./dist/single-spa-vue.umd.js"
+      "import": "./dist/single-spa-vue.esm.js"
     }
   },
   "scripts": {
