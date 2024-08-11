@@ -1,6 +1,6 @@
 {
   "name": "single-spa-vue",
-  "version": "3.0.0",
+  "version": "0.1.0-alpha.0",
   "description": "a single-spa plugin for vue.js applications",
   "type": "module",
   "main": "dist/single-spa-vue.umd.js",
