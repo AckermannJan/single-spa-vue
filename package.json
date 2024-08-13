@@ -1,5 +1,5 @@
 {
-  "name": "single-spa-vue",
+  "name": "@ackermannjan/single-spa-vue",
   "version": "0.1.0-alpha.0",
   "description": "a single-spa plugin for vue.js applications",
   "type": "module",
