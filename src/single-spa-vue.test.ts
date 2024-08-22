@@ -72,8 +72,9 @@ describe("single-spa-vue", () => {
     });
 
     await lifecycles.bootstrap();
-    const instance = await lifecycles.mount(props);
+    const instance = (await lifecycles.mount(props)) as Vue;
 
+    // @ts-expect-error - We know that _data exists
     expect(instance._data.customData).toBe("customData");
     await lifecycles.unmount(props);
   });
@@ -94,8 +95,9 @@ describe("single-spa-vue", () => {
     });
 
     await lifecycles.bootstrap();
-    const instance = await lifecycles.mount(props);
+    const instance = (await lifecycles.mount(props)) as Vue;
 
+    // @ts-expect-error - We know that _data exists
     expect(instance._data.customData).toBe("customData");
     await lifecycles.unmount(props);
   });
@@ -160,6 +162,7 @@ describe("single-spa-vue", () => {
     await lifecycles.bootstrap();
     const instance = (await lifecycles.mount(props)) as Vue;
     expect(instance.$options.el).toBe("#my-custom-el-2 .single-spa-container");
+    // @ts-expect-error - We know that _data exists
     expect(instance._data.name).toEqual("test-app");
     expect(document.querySelector(`#my-custom-el-2 .test`)).toBeTruthy();
     document.querySelector("#my-custom-el-2")?.remove();
@@ -182,8 +185,9 @@ describe("single-spa-vue", () => {
 
     const htmlId = CSS.escape("single-spa-application:test-app");
     await lifecycles.bootstrap();
-    const instance = await lifecycles.mount(props);
+    const instance = (await lifecycles.mount(props)) as Vue;
     expect(instance.$options.el).toBe(`#${htmlId} .single-spa-container`);
+    // @ts-expect-error - We know that _data exists
     expect(instance._data.name).toEqual("test-app");
     expect(document.querySelector(`#${htmlId} .test`)).toBeTruthy();
     await lifecycles.unmount(props);
@@ -291,16 +295,14 @@ describe("single-spa-vue", () => {
   });
 
   it(`resolves appOptions from Promise and passes straight through to Vue`, async () => {
-    const appOptions = () =>
-      Promise.resolve({
-        something: "random",
-        render: (h) => h("div", { class: "test" }, "test-app"),
-      });
-
     const lifecycles = singleSpaVue({
       vueVersion: 2,
       Vue,
-      appOptions,
+      appOptions: () =>
+        Promise.resolve({
+          something: "random",
+          render: (h) => h("div", { class: "test" }, "test-app"),
+        }),
     });
     await lifecycles.bootstrap();
     await lifecycles.mount(props);
@@ -310,17 +312,15 @@ describe("single-spa-vue", () => {
   });
 
   it(`appOptions function will receive the props provided at mount`, async () => {
-    const appOptions = vi.fn((_opts, localProps) => {
-      expect(localProps).toBe(props);
-      return Promise.resolve({
-        render: (h) => h("div", { class: "test" }, "test-app"),
-      });
-    });
-
     const lifecycles = singleSpaVue({
       vueVersion: 2,
       Vue,
-      appOptions,
+      appOptions: (_opts, localProps) => {
+        expect(localProps).toBe(props);
+        return Promise.resolve({
+          render: (h) => h("div", { class: "test" }, "test-app"),
+        });
+      },
     });
 
     await lifecycles.bootstrap();
@@ -378,7 +378,9 @@ describe("single-spa-vue", () => {
     });
     await lifecycles.bootstrap();
     const instance = (await lifecycles.mount(props)) as Vue;
+    // @ts-expect-error - We know that _data exists
     expect(instance._data.name).toBe("test-app");
+    // @ts-expect-error - We know that _data exists
     expect(instance._data.someCustomThing).toBe("hi");
     return lifecycles.unmount(props);
   });
@@ -406,7 +408,7 @@ describe("single-spa-vue", () => {
       },
     });
     await lifecycles.bootstrap();
-    const instance = await lifecycles.mount(props);
+    const instance = (await lifecycles.mount(props)) as Vue;
     expect(instance instanceof Vue).toBeTruthy();
     await lifecycles.unmount(props);
   });
@@ -420,7 +422,7 @@ describe("single-spa-vue", () => {
       },
     });
     await lifecycles.bootstrap();
-    const instance = await lifecycles.mount(props);
+    const instance = (await lifecycles.mount(props)) as Vue;
     const destroySpy = vi.spyOn(instance, "$destroy");
     await lifecycles.unmount(props);
     await lifecycles.unmount(props);
@@ -711,6 +713,7 @@ describe("single-spa-vue", () => {
     const newProps = { ...props, extraProp: "newValue" };
     await lifecycles.update(newProps);
 
+    // @ts-expect-error - We know that _data exists
     expect(instance._data.extraProp).toBe("newValue");
     await lifecycles.unmount(props);
   });
