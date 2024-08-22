@@ -22,10 +22,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/single-spa/single-spa-vue.git"
+    "url": "git+https://github.com/AckermannJan/single-spa-vue"
   },
   "files": [
-    "dist"
+    "dist",
+    "src"
   ],
   "keywords": [
     "single-spa",
@@ -38,9 +39,9 @@
   "author": "single-spa core team",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/single-spa/single-spa-vue/issues"
+    "url": "https://github.com/AckermannJan/single-spa-vue/issues"
   },
-  "homepage": "https://github.com/single-spa/single-spa-vue#readme",
+  "homepage": "https://github.com/AckermannJan/single-spa-vue#readme",
   "peerDependencies": {
     "vue": "^2.7.0 || >=3.0.0"
   },

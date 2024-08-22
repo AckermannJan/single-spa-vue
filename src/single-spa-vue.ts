@@ -54,7 +54,7 @@ interface BaseInstance {
   [key: string]: unknown;
 }
 
-type InstanceVue2 = BaseInstance & {
+export type InstanceVue2 = BaseInstance & {
   root?: ComponentPublicInstanceVue2;
   vueInstance?: Vue;
 };
@@ -70,6 +70,7 @@ export interface Props {
   name: string;
   mountParcel: object; // TODO: Define Parcel type
   singleSpa: object; // TODO: Define SingleSpa type
+  domElement: HTMLElement;
   [key: string]: unknown;
 }
 
@@ -132,10 +133,13 @@ class SingleSpaVue {
     opts: SingleSpaVueOpts,
     mountedInstances: Record<string, Instance>,
     props: Props,
-  ): Promise<unknown> {
+  ): Promise<Vue | App<Element>> {
     await Promise.resolve();
-    let instance: Instance = {};
+    const instance: Instance = {};
     const appOptions = await this.resolveAppOptions(opts, props);
+    if (props.domElement && !appOptions.el) {
+      appOptions.el = props.domElement;
+    }
 
     let domEl: HTMLElement | null;
     if (appOptions.el) {
@@ -187,7 +191,6 @@ class SingleSpaVue {
     if (!appOptions.data) {
       appOptions.data = {};
     }
-
     const originData = appOptions.data;
     appOptions.data = function () {
       const data =
@@ -211,7 +214,8 @@ class SingleSpaVue {
         return currentInstance.vueInstance;
       } else {
         currentInstance.root = currentInstance.vueInstance.mount(appOptions.el);
-        instance = currentInstance;
+        mountedInstances[props.name] = instance;
+        return currentInstance.vueInstance;
       }
     } else {
       const currentInstance = instance as InstanceVue2;
@@ -222,32 +226,30 @@ class SingleSpaVue {
         currentInstance.vueInstance = currentInstance.vueInstance?.bind(
           currentInstance.vueInstance,
         );
-        instance = currentInstance;
+      }
+      if (currentInstance.vueInstance === undefined) {
+        throw Error("single-spa-vue: vueInstance is undefined");
       }
       if (opts.handleInstance) {
-        if (currentInstance.vueInstance === undefined) {
-          throw Error("single-spa-vue: vueInstance is undefined");
-        }
         await opts.handleInstance(currentInstance.vueInstance, props);
         mountedInstances[props.name] = currentInstance;
         return currentInstance.vueInstance;
+      } else {
+        mountedInstances[props.name] = instance;
+        return currentInstance.vueInstance;
       }
     }
-
-    mountedInstances[props.name] = instance;
-
-    return instance.vueInstance;
   }
 
   public async unmount(
     opts: SingleSpaVueOpts,
     mountedInstances: Record<string, Instance>,
     props: Props,
-  ): Promise<void> {
+  ): Promise<Record<string, Instance>> {
     await Promise.resolve();
     const instance = mountedInstances[props.name];
     if (!mountedInstances[props.name]) {
-      return;
+      return mountedInstances;
     }
 
     if (this.isVue3(opts)) {
@@ -263,6 +265,11 @@ class SingleSpaVue {
       instance.domEl.innerHTML = "";
       delete instance.domEl;
     }
+
+    // Delete the instance completely
+    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+    delete mountedInstances[props.name];
+    return mountedInstances;
   }
 
   public async update(
@@ -285,7 +292,7 @@ class SingleSpaVue {
 
     const root = instance.root || instance.vueInstance;
     for (const prop in data) {
-      // @ts-expect-error - TODO: Fix this
+      // @ts-expect-error - This is a valid check
       root[prop] = data[prop];
     }
   }
@@ -311,5 +318,6 @@ export default function (opts: SingleSpaVueOpts) {
       singleSpaVue.unmount(opts, mountedInstances, props),
     update: (props: Props) =>
       singleSpaVue.update(opts, mountedInstances, props),
+    getMountedInstances: () => mountedInstances,
   };
 }
