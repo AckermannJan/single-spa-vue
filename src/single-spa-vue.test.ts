@@ -1,5 +1,5 @@
-import singleSpaVue, { InstanceVue2, Props } from "./single-spa-vue";
-import { expect, Mock, MockInstance } from "vitest";
+import singleSpaVue, { type Props } from "./single-spa-vue";
+import type { Mock, MockInstance } from "vitest";
 // @ts-expect-error - `css.escape` has no types
 import cssEscape from "css.escape";
 import type { VueConstructor } from "vue2";
@@ -656,12 +656,9 @@ describe("single-spa-vue", () => {
       replaceMode: true,
     });
     await lifecycles.bootstrap();
-    await lifecycles.mount(props);
+    const instance = (await lifecycles.mount(props)) as Vue;
 
-    const instance = lifecycles.getMountedInstances()[
-      "test-app"
-    ] as unknown as InstanceVue2;
-    expect(instance.vueInstance?.$options.el).toBe(`#${htmlId}`);
+    expect(instance.$options.el).toBe(`#${htmlId}`);
     expect(document.querySelector(`#${htmlId}`)).toBeFalsy();
     expect(document.body.innerHTML).toContain("test-app");
     domEl.remove();
@@ -683,13 +680,8 @@ describe("single-spa-vue", () => {
       },
     });
     await lifecycles.bootstrap();
-    await lifecycles.mount(props);
-    const instance = lifecycles.getMountedInstances()[
-      "test-app"
-    ] as unknown as InstanceVue2;
-    expect(instance.vueInstance?.$options.el).toBe(
-      `#${htmlId} .single-spa-container`,
-    );
+    const instance = (await lifecycles.mount(props)) as Vue;
+    expect(instance.$options.el).toBe(`#${htmlId} .single-spa-container`);
     expect(document.querySelector(`#${htmlId}`)).toBeTruthy();
     domEl.remove();
     await lifecycles.unmount(props);

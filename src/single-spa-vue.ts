@@ -318,6 +318,5 @@ export default function (opts: SingleSpaVueOpts) {
       singleSpaVue.unmount(opts, mountedInstances, props),
     update: (props: Props) =>
       singleSpaVue.update(opts, mountedInstances, props),
-    getMountedInstances: () => mountedInstances,
   };
 }
