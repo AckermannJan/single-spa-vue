@@ -1,0 +1,5 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`single-spa-vue > calls new Vue() during mount and mountedInstances.instance.$destroy() on unmount 1`] = `"<div id="single-spa-application:test-app"><div>test-app</div></div>"`;
+
+exports[`single-spa-vue > calls new Vue() during mount and mountedInstances.instance.$destroy() on unmount 2`] = `"<div id="single-spa-application:test-app"></div>"`;
