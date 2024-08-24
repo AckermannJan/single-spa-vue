@@ -21,12 +21,12 @@ interface AppOptionsObject {
   [key: string]: unknown;
 }
 
-export type AppOptionsFunction = (
+type AppOptionsFunction = (
   opts: SingleSpaVueOpts,
   props: object,
 ) => Promise<AppOptionsObject>;
 
-type AppOptions = AppOptionsObject | AppOptionsFunction;
+export type AppOptions = AppOptionsObject | AppOptionsFunction;
 
 interface BaseSingleSpaVueOptions {
   template?: string;
@@ -66,7 +66,7 @@ interface BaseInstance {
   [key: string]: unknown;
 }
 
-export type InstanceVue2 = BaseInstance & {
+type InstanceVue2 = BaseInstance & {
   root?: ComponentPublicInstanceVue2;
   vueInstance?: Vue;
 };
@@ -76,7 +76,7 @@ type InstanceVue3 = BaseInstance & {
   vueInstance?: App<Element>;
 };
 
-type Instance = InstanceVue2 | InstanceVue3;
+export type Instance = InstanceVue2 | InstanceVue3;
 
 export interface Props {
   name: string;
@@ -318,7 +318,7 @@ class SingleSpaVue {
     }
   }
 
-  async bootstrap(opts: SingleSpaVueOpts) {
+  public async bootstrap(opts: SingleSpaVueOpts) {
     if (opts.loadRootComponent) {
       const root = await opts.loadRootComponent();
       return (opts.rootComponent = root);
