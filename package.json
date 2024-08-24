@@ -43,13 +43,7 @@
   },
   "homepage": "https://github.com/AckermannJan/single-spa-vue#readme",
   "peerDependencies": {
-    "@vue/composition-api": "^1.7.2",
     "vue": "^2.7.0 || >=3.0.0"
-  },
-  "peerDependenciesMeta": {
-    "@vue/composition-api": {
-      "optional": true
-    }
   },
   "devDependencies": {
     "@babel/core": "^7.22.5",
