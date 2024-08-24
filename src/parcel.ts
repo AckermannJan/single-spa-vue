@@ -1,4 +1,4 @@
-import { defineComponent, h } from "vue";
+import * as Vue from "vue";
 
 interface RenderedComponentProps {
   ref: string;
@@ -20,7 +20,7 @@ interface Parcel {
   getStatus: () => string;
 }
 
-export default defineComponent({
+export default Vue.defineComponent({
   props: {
     config: [Object, Promise],
     wrapWith: String,
@@ -32,7 +32,8 @@ export default defineComponent({
     },
     parcelProps: Object,
   },
-  render() {
+  render(h: typeof Vue.h | undefined) {
+    h = typeof h === "function" ? h : Vue.h;
     const containerTagName: string = this.wrapWith || "div";
     const props: RenderedComponentProps = { ref: "container" };
 

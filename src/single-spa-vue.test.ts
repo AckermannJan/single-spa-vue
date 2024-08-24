@@ -1,10 +1,10 @@
-import singleSpaVue, { type Props } from "./single-spa-vue";
+import singleSpaVue, { type Props, SingleSpaVueOpts } from "./single-spa-vue";
 import type { Mock, MockInstance } from "vitest";
 // @ts-expect-error - `css.escape` has no types
 import cssEscape from "css.escape";
 import type { VueConstructor } from "vue2";
 import Vue from "vue2";
-import { createApp, h } from "vue";
+import { createApp, h, h as H } from "vue";
 
 const domElId = `single-spa-application:test-app`;
 const cssSelector = `#single-spa-application\\:test-app`;
@@ -24,6 +24,7 @@ describe("single-spa-vue", () => {
   });
 
   beforeEach(() => {
+    // @ts-expect-error - We dont want to declare a domElement in the props
     props = { name: "test-app", mountParcel: vi.fn(), singleSpa: vi.fn() };
   });
 
@@ -40,7 +41,7 @@ describe("single-spa-vue", () => {
       vueVersion: 2,
       Vue,
       appOptions: {
-        render: (h) => h("div", "test-app"),
+        render: (h: typeof H) => h("div", "test-app"),
       },
       handleInstance,
     });
@@ -61,7 +62,7 @@ describe("single-spa-vue", () => {
       vueVersion: 2,
       Vue,
       appOptions: {
-        render: (h) => h("div", "test-app"),
+        render: (h: typeof H) => h("div", "test-app"),
         data() {
           return {
             customData: "customData",
@@ -86,8 +87,9 @@ describe("single-spa-vue", () => {
       vueVersion: 2,
       Vue,
       appOptions: {
-        render: (h) => h("div", "test-app"),
+        render: (h: typeof H) => h("div", "test-app"),
         data: {
+          // @ts-expect-error - This is an edge case usually you should provide data as a function
           customData: "customData",
         },
       },
@@ -107,7 +109,7 @@ describe("single-spa-vue", () => {
       vueVersion: 2,
       Vue,
       appOptions: {
-        render: (h) => h("div", "test-app"),
+        render: (h: typeof H) => h("div", "test-app"),
       },
     });
 
@@ -130,7 +132,7 @@ describe("single-spa-vue", () => {
       Vue,
       appOptions: {
         el: "#my-custom-el",
-        render: (h) => h("div", { class: "test" }, "test-app"),
+        render: (h: typeof H) => h("div", { class: "test" }, "test-app"),
       },
     });
 
@@ -154,7 +156,7 @@ describe("single-spa-vue", () => {
       Vue,
       appOptions: {
         el: domEl,
-        render: (h) => h("div", { class: "test" }, "test-app"),
+        render: (h: typeof H) => h("div", { class: "test" }, "test-app"),
       },
     });
 
@@ -179,7 +181,7 @@ describe("single-spa-vue", () => {
       Vue,
       appOptions: {
         el: domEl,
-        render: (h) => h("div", { class: "test" }, "test-app"),
+        render: (h: typeof H) => h("div", { class: "test" }, "test-app"),
       },
     });
 
@@ -208,7 +210,7 @@ describe("single-spa-vue", () => {
       vueVersion: 2,
       Vue,
       appOptions: {
-        render: (h) => h("div", { class: "test" }, "test-app"),
+        render: (h: typeof H) => h("div", { class: "test" }, "test-app"),
       },
     });
 
@@ -228,8 +230,8 @@ describe("single-spa-vue", () => {
       singleSpaVue({
         vueVersion: 2,
         Vue,
-        // @ts-expect-error - `el` should be a string or DOM Element
         appOptions: {
+          // @ts-expect-error - `el` should be a string or DOM Element
           el: 1233,
         },
       });
@@ -261,7 +263,7 @@ describe("single-spa-vue", () => {
       vueVersion: 2,
       Vue,
       appOptions: {
-        render: (h) => h("div", { class: "test" }, "test-app"),
+        render: (h: typeof H) => h("div", { class: "test" }, "test-app"),
       },
     });
 
@@ -283,7 +285,7 @@ describe("single-spa-vue", () => {
   it(`passes appOptions straight through to Vue`, async () => {
     const appOptions = {
       something: "random",
-      render: (h) => h("div", { class: "test" }, "test-app"),
+      render: (h: typeof H) => h("div", { class: "test" }, "test-app"),
     };
     const lifecycles = singleSpaVue({
       vueVersion: 2,
@@ -303,7 +305,7 @@ describe("single-spa-vue", () => {
       appOptions: () =>
         Promise.resolve({
           something: "random",
-          render: (h) => h("div", { class: "test" }, "test-app"),
+          render: (h: typeof H) => h("div", { class: "test" }, "test-app"),
         }),
     });
     await lifecycles.bootstrap();
@@ -320,7 +322,7 @@ describe("single-spa-vue", () => {
       appOptions: (_opts, localProps) => {
         expect(localProps).toBe(props);
         return Promise.resolve({
-          render: (h) => h("div", { class: "test" }, "test-app"),
+          render: (h: typeof H) => h("div", { class: "test" }, "test-app"),
         });
       },
     });
@@ -336,7 +338,7 @@ describe("single-spa-vue", () => {
       vueVersion: 2,
       Vue,
       appOptions: {
-        render: (h) => h("div", { class: "test" }, "test-app"),
+        render: (h: typeof H) => h("div", { class: "test" }, "test-app"),
       },
       handleInstance,
     });
@@ -356,11 +358,11 @@ describe("single-spa-vue", () => {
 
     opts.loadRootComponent.mockReturnValue(
       Promise.resolve({
-        render: (h) => h("div", "test-app"),
+        render: (h: typeof H) => h("div", "test-app"),
       }),
     );
 
-    const lifecycles = singleSpaVue(opts);
+    const lifecycles = singleSpaVue(opts as SingleSpaVueOpts);
     await lifecycles.bootstrap();
     expect(opts.loadRootComponent).toHaveBeenCalled();
     const instance = (await lifecycles.mount(props)) as Vue;
@@ -375,7 +377,7 @@ describe("single-spa-vue", () => {
       vueVersion: 2,
       Vue,
       appOptions: {
-        render: (h) => h("div", "test-app"),
+        render: (h: typeof H) => h("div", "test-app"),
       },
     });
     await lifecycles.bootstrap();
@@ -392,7 +394,7 @@ describe("single-spa-vue", () => {
       vueVersion: 2,
       Vue: Vue as unknown as VueConstructor,
       appOptions: {
-        render: (h) => h("div", "test-app"),
+        render: (h: typeof H) => h("div", "test-app"),
       },
     });
     await lifecycles.bootstrap();
@@ -406,7 +408,7 @@ describe("single-spa-vue", () => {
       vueVersion: 2,
       Vue,
       appOptions: {
-        render: (h) => h("div", "test-app"),
+        render: (h: typeof H) => h("div", "test-app"),
       },
     });
     await lifecycles.bootstrap();
@@ -420,7 +422,7 @@ describe("single-spa-vue", () => {
       vueVersion: 2,
       Vue,
       appOptions: {
-        render: (h) => h("div", "test-app"),
+        render: (h: typeof H) => h("div", "test-app"),
       },
     });
     await lifecycles.bootstrap();
@@ -437,7 +439,7 @@ describe("single-spa-vue", () => {
       vueVersion: 2,
       Vue,
       appOptions: {
-        render: (h) => h("div", { class: "test" }, "test-app"),
+        render: (h: typeof H) => h("div", { class: "test" }, "test-app"),
       },
     });
 
@@ -457,7 +459,6 @@ describe("single-spa-vue", () => {
       (instance as Vue).$destroy = (...args) => {
         return oldDestroy.apply(instance, args);
       };
-      // @ts-expect-error - We know that $destroy exists
       obj.spy = vi.spyOn(instance, "$destroy");
     }
 
@@ -599,7 +600,7 @@ describe("single-spa-vue", () => {
       vueVersion: 2,
       Vue,
       appOptions: {
-        render: (h) => h("div", "test-app"),
+        render: (h: typeof H) => h("div", "test-app"),
       },
       handleInstance,
     });
@@ -657,7 +658,7 @@ describe("single-spa-vue", () => {
       Vue,
       appOptions: {
         el: domEl,
-        render: (h) => h("div", "test-app"),
+        render: (h: typeof H) => h("div", "test-app"),
       },
       replaceMode: true,
     });
@@ -682,7 +683,7 @@ describe("single-spa-vue", () => {
       Vue,
       appOptions: {
         el: domEl,
-        render: (h) => h("div", "test-app"),
+        render: (h: typeof H) => h("div", "test-app"),
       },
     });
     await lifecycles.bootstrap();
@@ -698,7 +699,7 @@ describe("single-spa-vue", () => {
       vueVersion: 2,
       Vue,
       appOptions: {
-        render: (h) => h("div", "test-app"),
+        render: (h: typeof H) => h("div", "test-app"),
       },
     });
 
@@ -711,7 +712,6 @@ describe("single-spa-vue", () => {
     const newProps = { ...props, extraProp: "newValue" };
     await lifecycles.update(newProps);
 
-    // @ts-expect-error - We know that _data exists
     expect(instance._data.extraProp).toBe("newValue");
     await lifecycles.unmount(props);
   });

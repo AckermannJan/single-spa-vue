@@ -3,76 +3,58 @@ import type {
   ComponentPublicInstance,
   Component,
   CreateAppFunction,
-  ComponentOptionsBase,
-  ComputedOptions,
-  MethodOptions,
-} from "vue";
-import type {
-  VueConstructor,
-  ComponentPublicInstance as ComponentPublicInstanceVue2,
-  h as H,
-  Component as ComponentVue2,
   ComponentOptions,
-} from "vue2";
+  Vue2,
+  h as H,
+} from "vue-demi";
+type Vue = typeof Vue2;
 
-interface AppOptionsObject {
+export interface AppOptionsObject extends ComponentOptions<any> {
   el?: string | HTMLElement;
-  data?: unknown;
   [key: string]: unknown;
 }
 
-type AppOptionsFunction = (
+export type AppOptionsFunction = (
   opts: SingleSpaVueOpts,
   props: object,
 ) => Promise<AppOptionsObject>;
 
 export type AppOptions = AppOptionsObject | AppOptionsFunction;
 
-interface BaseSingleSpaVueOptions {
+export interface BaseSingleSpaVueOptions {
   template?: string;
-  loadRootComponent?(): Promise<Component | ComponentVue2>;
+  loadRootComponent?(): Promise<Component>;
   replaceMode?: boolean;
-  rootComponent?: Component | ComponentVue2;
+  rootComponent?: Component;
 }
 
-type SingleSpaOptsVue2 = BaseSingleSpaVueOptions & {
+export type SingleSpaOptsVue2 = BaseSingleSpaVueOptions & {
   vueVersion: 2;
-  appOptions: AppOptions & ComponentOptions<any>;
-  Vue: VueConstructor;
+  appOptions: AppOptions;
+  Vue: Vue;
   handleInstance?(app: Vue, props: Props): Promise<void> | void;
 };
 
-type SingleSpaOptsVue3 = BaseSingleSpaVueOptions & {
+export type SingleSpaOptsVue3 = BaseSingleSpaVueOptions & {
   vueVersion: 3;
-  appOptions: AppOptions &
-    ComponentOptionsBase<
-      any,
-      any,
-      any,
-      ComputedOptions,
-      MethodOptions,
-      object,
-      any,
-      any
-    >;
+  appOptions: AppOptions;
   createApp: CreateAppFunction<Element>;
   handleInstance?(app: App, props: Props): Promise<void> | void;
 };
 
 export type SingleSpaVueOpts = SingleSpaOptsVue2 | SingleSpaOptsVue3;
 
-interface BaseInstance {
+export interface BaseInstance {
   domEl?: HTMLElement;
+  root?: ComponentPublicInstance;
   [key: string]: unknown;
 }
 
-type InstanceVue2 = BaseInstance & {
-  root?: ComponentPublicInstanceVue2;
+export type InstanceVue2 = BaseInstance & {
   vueInstance?: Vue;
 };
 
-type InstanceVue3 = BaseInstance & {
-  root?: ComponentPublicInstance;
+export type InstanceVue3 = BaseInstance & {
   vueInstance?: App<Element>;
 };
 
@@ -196,15 +178,14 @@ class SingleSpaVue {
     (instance as Instance).domEl = domEl;
 
     if (!appOptions.render && !appOptions.template && opts.rootComponent) {
-      appOptions.render = (h: typeof H) =>
-        h(opts.rootComponent as ComponentVue2);
+      appOptions.render = (h: typeof H) => h(opts.rootComponent as Component);
     }
 
     if (!appOptions.data) {
-      appOptions.data = {};
+      appOptions.data = () => ({});
     }
     const originData = appOptions.data;
-    appOptions.data = function () {
+    appOptions.data = () => {
       const data =
         typeof originData === "function"
           ? originData.call(this, this)
@@ -215,16 +196,7 @@ class SingleSpaVue {
     if (this.isVue3(opts)) {
       const currentInstance = instance as InstanceVue3;
       currentInstance.vueInstance = opts.createApp(
-        appOptions as unknown as ComponentOptionsBase<
-          any,
-          any,
-          any,
-          ComputedOptions,
-          MethodOptions,
-          object,
-          any,
-          any
-        >,
+        appOptions as unknown as ComponentOptions<any>,
       );
       if (opts.handleInstance) {
         await opts.handleInstance(currentInstance.vueInstance, props);
@@ -241,9 +213,7 @@ class SingleSpaVue {
     } else {
       const currentInstance = instance as InstanceVue2;
       currentInstance.vueInstance = new opts.Vue(appOptions);
-      // @ts-expect-error - Bind should not exist, but I don't want to remove it to not break anything
       if (currentInstance.vueInstance?.bind) {
-        // @ts-expect-error - Bind should not exist, but I don't want to remove it to not break anything
         currentInstance.vueInstance = currentInstance.vueInstance?.bind(
           currentInstance.vueInstance,
         );
@@ -313,7 +283,6 @@ class SingleSpaVue {
 
     const root = instance.root || instance.vueInstance;
     for (const prop in data) {
-      // @ts-expect-error - This is a valid check
       root[prop] = data[prop];
     }
   }
