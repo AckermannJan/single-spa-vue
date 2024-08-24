@@ -3,14 +3,16 @@ import type {
   ComponentPublicInstance,
   Component,
   CreateAppFunction,
-  FunctionalComponent,
+  ComponentOptionsBase,
+  ComputedOptions,
+  MethodOptions,
 } from "vue";
 import type {
   VueConstructor,
   ComponentPublicInstance as ComponentPublicInstanceVue2,
   h as H,
   Component as ComponentVue2,
-  FunctionalComponentOptions,
+  ComponentOptions,
 } from "vue2";
 
 interface AppOptionsObject {
@@ -35,14 +37,24 @@ interface BaseSingleSpaVueOptions {
 
 type SingleSpaOptsVue2 = BaseSingleSpaVueOptions & {
   vueVersion: 2;
-  appOptions: AppOptions & FunctionalComponentOptions;
+  appOptions: AppOptions & ComponentOptions<any>;
   Vue: VueConstructor;
   handleInstance?(app: Vue, props: Props): Promise<void> | void;
 };
 
 type SingleSpaOptsVue3 = BaseSingleSpaVueOptions & {
   vueVersion: 3;
-  appOptions: AppOptions & FunctionalComponent;
+  appOptions: AppOptions &
+    ComponentOptionsBase<
+      any,
+      any,
+      any,
+      ComputedOptions,
+      MethodOptions,
+      object,
+      any,
+      any
+    >;
   createApp: CreateAppFunction<Element>;
   handleInstance?(app: App, props: Props): Promise<void> | void;
 };
@@ -203,7 +215,16 @@ class SingleSpaVue {
     if (this.isVue3(opts)) {
       const currentInstance = instance as InstanceVue3;
       currentInstance.vueInstance = opts.createApp(
-        appOptions as unknown as FunctionalComponent,
+        appOptions as unknown as ComponentOptionsBase<
+          any,
+          any,
+          any,
+          ComputedOptions,
+          MethodOptions,
+          object,
+          any,
+          any
+        >,
       );
       if (opts.handleInstance) {
         await opts.handleInstance(currentInstance.vueInstance, props);

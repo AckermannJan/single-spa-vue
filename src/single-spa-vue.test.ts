@@ -226,9 +226,10 @@ describe("single-spa-vue", () => {
   it(`throws an error if appOptions.el is not passed in as a string or dom element`, () => {
     expect(() => {
       singleSpaVue({
-        Vue: Vue as unknown as VueConstructor,
+        vueVersion: 2,
+        Vue,
+        // @ts-expect-error - `el` should be a string or DOM Element
         appOptions: {
-          // @ts-expect-error - `el` should be a string or DOM Element
           el: 1233,
         },
       });
@@ -237,7 +238,8 @@ describe("single-spa-vue", () => {
 
   it(`throws an error if appOptions.el doesn't exist in the dom`, async () => {
     const lifecycles = singleSpaVue({
-      Vue: Vue as unknown as VueConstructor,
+      vueVersion: 2,
+      Vue,
       appOptions: {
         el: "#doesnt-exist-in-dom",
       },
@@ -487,6 +489,7 @@ describe("single-spa-vue", () => {
 
     const lifecycles = singleSpaVue({
       vueVersion: 3,
+      // @ts-expect-error - This is an edge case usually you should not provide Vue 3 like this
       Vue: {
         createApp,
       },
@@ -562,6 +565,7 @@ describe("single-spa-vue", () => {
     });
 
     const lifecycles = singleSpaVue({
+      vueVersion: 3,
       createApp,
       appOptions: {},
       handleInstance,
@@ -592,6 +596,7 @@ describe("single-spa-vue", () => {
     });
 
     const lifecycles = singleSpaVue({
+      vueVersion: 2,
       Vue,
       appOptions: {
         render: (h) => h("div", "test-app"),
@@ -624,6 +629,7 @@ describe("single-spa-vue", () => {
     };
 
     const lifecycles = singleSpaVue({
+      vueVersion: 3,
       createApp,
       appOptions: {},
     });
