@@ -6,7 +6,7 @@ import type {
   CreateAppFunction,
   Vue2,
 } from "vue-demi";
-import { AppProps, LifeCycleFn, ParcelProps } from "single-spa";
+import { AppProps, CustomProps, LifeCycleFn, ParcelProps } from "single-spa";
 
 export type Vue = typeof Vue2;
 
@@ -29,21 +29,25 @@ export interface BaseSingleSpaVueOptions {
   rootComponent?: Component;
 }
 
-export type SingleSpaOptsVue2 = BaseSingleSpaVueOptions & {
-  vueVersion: 2;
-  appOptions: AppOptions;
-  Vue: Vue;
-  handleInstance?(app: Vue, props: Props): Promise<void> | void;
-};
+export type SingleSpaOptsVue2<ExtraProps = CustomProps> =
+  BaseSingleSpaVueOptions & {
+    vueVersion: 2;
+    appOptions: AppOptions;
+    Vue: Vue;
+    handleInstance?(app: Vue, props: Props & ExtraProps): Promise<void> | void;
+  };
 
-export type SingleSpaOptsVue3 = BaseSingleSpaVueOptions & {
-  vueVersion: 3;
-  appOptions: AppOptions;
-  createApp: CreateAppFunction<Element>;
-  handleInstance?(app: App, props: Props): Promise<void> | void;
-};
+export type SingleSpaOptsVue3<ExtraProps = CustomProps> =
+  BaseSingleSpaVueOptions & {
+    vueVersion: 3;
+    appOptions: AppOptions;
+    createApp: CreateAppFunction<Element>;
+    handleInstance?(app: App, props: Props & ExtraProps): Promise<void> | void;
+  };
 
-export type SingleSpaVueOpts = SingleSpaOptsVue2 | SingleSpaOptsVue3;
+export type SingleSpaVueOpts<ExtraProps = CustomProps> =
+  | SingleSpaOptsVue2<ExtraProps>
+  | SingleSpaOptsVue3<ExtraProps>;
 
 export interface BaseInstance {
   domEl?: HTMLElement;

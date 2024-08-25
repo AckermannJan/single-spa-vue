@@ -1,5 +1,5 @@
 import type { Component, ComponentOptions, h as H } from "vue-demi";
-import type {
+import {
   SingleSpaVueOpts,
   SingleSpaOptsVue2,
   SingleSpaOptsVue3,
@@ -10,11 +10,12 @@ import type {
   InstanceVue2,
   InstanceVue3,
   VueLifecycles,
+  Props,
 } from "@/types";
-import type { AppProps, ParcelProps } from "single-spa";
+import { AppProps } from "single-spa";
 
 export default function singleSpaVue<ExtraProps>(
-  opts: SingleSpaVueOpts,
+  opts: SingleSpaVueOpts<ExtraProps>,
 ): VueLifecycles<ExtraProps> {
   const isVue2 = (opts: SingleSpaVueOpts): opts is SingleSpaOptsVue2 => {
     return (opts as SingleSpaOptsVue2).Vue !== undefined;
@@ -53,8 +54,8 @@ export default function singleSpaVue<ExtraProps>(
     opts.createApp || (opts.Vue && opts.Vue.createApp);
 
   const resolveAppOptions = async (
-    opts: SingleSpaVueOpts,
-    props: ExtraProps & AppProps,
+    opts: SingleSpaVueOpts<ExtraProps & Props>,
+    props: ExtraProps & Props,
   ): Promise<AppOptionsObject> => {
     if (typeof opts.appOptions === "function") {
       return (opts.appOptions as AppOptionsFunction)(opts, props);
@@ -64,9 +65,9 @@ export default function singleSpaVue<ExtraProps>(
   };
 
   const mount = async (
-    opts: SingleSpaVueOpts,
+    opts: SingleSpaVueOpts<ExtraProps & Props>,
     mountedInstances: Record<string, Instance>,
-    props: ExtraProps & AppProps & ParcelProps,
+    props: ExtraProps & Props,
   ) => {
     await Promise.resolve();
     const instance: Instance = {};
@@ -172,7 +173,7 @@ export default function singleSpaVue<ExtraProps>(
     }
   };
 
-  const bootstrap = async (opts: SingleSpaVueOpts) => {
+  const bootstrap = async (opts: SingleSpaVueOpts<ExtraProps & Props>) => {
     if (opts.loadRootComponent) {
       const root = await opts.loadRootComponent();
       return (opts.rootComponent = root);
@@ -182,7 +183,7 @@ export default function singleSpaVue<ExtraProps>(
   };
 
   const update = async (
-    opts: SingleSpaVueOpts,
+    opts: SingleSpaVueOpts<ExtraProps & Props>,
     mountedInstances: Record<string, Instance>,
     props: ExtraProps & AppProps,
   ) => {
@@ -208,7 +209,7 @@ export default function singleSpaVue<ExtraProps>(
   };
 
   const unmount = async (
-    opts: SingleSpaVueOpts,
+    opts: SingleSpaVueOpts<ExtraProps & Props>,
     mountedInstances: Record<string, Instance>,
     props: ExtraProps & AppProps,
   ) => {

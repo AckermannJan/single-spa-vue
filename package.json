@@ -13,7 +13,7 @@
     }
   },
   "scripts": {
-    "build": "rimraf dist && rollup -c",
+    "build": "rimraf dist && rollup -c && tsc-alias",
     "build:watch": "rollup -cw",
     "test": "cross-env BABEL_ENV=test vitest run --coverage",
     "format": "prettier --write .",
@@ -68,6 +68,7 @@
     "rimraf": "^6.0.1",
     "rollup": "^4.20.0",
     "single-spa": "^6.0.1",
+    "tsc-alias": "^1.8.10",
     "typescript": "^5.5.4",
     "typescript-eslint": "^8.0.1",
     "vitest": "^2.0.5",
