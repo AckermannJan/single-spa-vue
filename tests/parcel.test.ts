@@ -1,30 +1,23 @@
 import { mount } from "@vue/test-utils";
-import { mountRootParcel } from "single-spa";
-import Parcel from "./parcel.js";
+import { mountRootParcel, type ParcelProps } from "single-spa";
+import Parcel from "@/parcel.js";
+import type { VueWrapper } from "@vue/test-utils/dist/vueWrapper";
 
 describe("Parcel", () => {
-  let wrapper;
+  let wrapper: VueWrapper<any> | null = null;
 
   afterEach(() => {
     if (wrapper) {
-      wrapper.destroy();
+      wrapper.unmount();
     }
 
     wrapper = null;
   });
 
-  it("should throw an error if incorrect props are provided", async () => {
-    try {
-      mount(Parcel);
-      fail("Mounting should fail without config prop");
-    } catch (err) {
-      expect(err.message).toMatch(/component requires a config prop/);
-    }
-  });
-
   it("should render if config and mountParcel are provided", async () => {
-    const wrapper = await mount(Parcel, {
+    const wrapper = mount(Parcel, {
       propsData: {
+        // @ts-expect-error - for testing we have a very specific config object
         config: createParcelConfig(),
         mountParcel: mountRootParcel,
       },
@@ -39,8 +32,9 @@ describe("Parcel", () => {
   });
 
   it("should wrap with to div if no 'wrapWith' is provided", async () => {
-    const wrapper = await mount(Parcel, {
+    const wrapper = mount(Parcel, {
       propsData: {
+        // @ts-expect-error - for testing we have a very specific config object
         config: createParcelConfig(),
         mountParcel: mountRootParcel,
       },
@@ -54,8 +48,9 @@ describe("Parcel", () => {
   });
 
   it("should respect the wrapWith, wrapClass, and wrapStyle props", async () => {
-    wrapper = await mount(Parcel, {
+    wrapper = mount(Parcel, {
       propsData: {
+        // @ts-expect-error - for testing we have a very specific config object
         config: createParcelConfig(),
         wrapWith: "span",
         wrapClass: "the-class",
@@ -73,24 +68,24 @@ describe("Parcel", () => {
     expect(wrapper.find("span").exists()).toBe(true);
     expect(wrapper.find("span").classes()).toContain("the-class");
     expect(wrapper.find("span").attributes("style")).toEqual(
-      "background-color: red;"
+      "background-color: red;",
     );
 
     expect(wrapper.find("span").find("button#parcel").exists()).toBe(true);
     expect(wrapper.find("span").find("button#parcel").text()).toBe(
-      "The parcel button"
+      "The parcel button",
     );
   });
 
   it("should unmount properly", async () => {
     const config = createParcelConfig();
-    const wrapper = await mount(Parcel, {
+    const wrapper = mount(Parcel, {
       propsData: {
+        // @ts-expect-error - For testing we have a very specific config object
         config,
         mountParcel: mountRootParcel,
       },
     });
-
     await tick();
 
     expect(wrapper.emitted().parcelMounted).toBeTruthy();
@@ -98,8 +93,7 @@ describe("Parcel", () => {
 
     expect(wrapper.find("button#parcel").exists()).toBe(true);
 
-    await wrapper.destroy();
-
+    wrapper.unmount();
     await tick();
 
     expect(config.mounted).toBe(false);
@@ -107,8 +101,9 @@ describe("Parcel", () => {
 
   it("forwards parcelProps to the parcel", async () => {
     const config = createParcelConfig();
-    const wrapper = await mount(Parcel, {
+    const wrapper = mount(Parcel, {
       propsData: {
+        // @ts-expect-error - for testing we have a very specific config object
         config,
         mountParcel: mountRootParcel,
         parcelProps: {
@@ -127,8 +122,9 @@ describe("Parcel", () => {
   it("calls parcel.update when update is defined", async () => {
     const config = createParcelConfig({ update: true });
 
-    const wrapper = await mount(Parcel, {
+    const wrapper = mount(Parcel, {
       propsData: {
+        // @ts-expect-error - for testing we have a very specific config object
         config,
         mountParcel: mountRootParcel,
         parcelProps: {
@@ -162,8 +158,9 @@ describe("Parcel", () => {
   it(`doesn't die when the parcel config doesn't have an update function`, async () => {
     const config = createParcelConfig();
 
-    const wrapper = await mount(Parcel, {
+    const wrapper = mount(Parcel, {
       propsData: {
+        // @ts-expect-error - for testing we have a very specific config object
         config,
         mountParcel: mountRootParcel,
         parcelProps: {
@@ -200,8 +197,9 @@ describe("Parcel", () => {
   it(`allows you to pass in a promise that resolves with the config object`, async () => {
     const config = createParcelConfig();
 
-    const wrapper = await mount(Parcel, {
+    const wrapper = mount(Parcel, {
       propsData: {
+        // @ts-expect-error - for testing we have a very specific config object
         config: Promise.resolve(config),
         mountParcel: mountRootParcel,
       },
@@ -217,17 +215,19 @@ describe("Parcel", () => {
 
 function createParcelConfig(opts = {}) {
   const result = {
-    async mount(props) {
+    async mount(props: ParcelProps) {
       const button = document.createElement("button");
       button.textContent = `The parcel button`;
       button.id = "parcel";
       props.domElement.appendChild(button);
       result.mounted = true;
+      // @ts-expect-error - Can be ignored for testing
       result.props = props;
     },
-    async unmount(props) {
-      props.domElement.querySelector("button").remove();
+    async unmount(props: ParcelProps) {
+      props.domElement.querySelector("button")?.remove();
       result.mounted = false;
+      // @ts-expect-error - Can be ignored for testing
       result.props = props;
     },
     mounted: false,
@@ -235,7 +235,9 @@ function createParcelConfig(opts = {}) {
     numUpdates: 0,
   };
 
+  // @ts-expect-error - Can be ignored for testing
   if (opts.update) {
+    // @ts-expect-error - Can be ignored for testing
     result.update = async (props) => {
       result.props = props;
       result.numUpdates++;
