@@ -15,10 +15,10 @@
     "noImplicitReturns": true,
     "skipLibCheck": true,
     "outDir": "dist",
-    "types": ["vite/client", "vitest/globals"],
+    "types": ["vitest/globals", "@types/node"],
     "paths": {
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src/**/*.ts"]
+  "include": ["src/**/*.ts", "tests/**/*.ts", "vitest.config.ts"]
 }

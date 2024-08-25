@@ -1,6 +1,6 @@
 import { mount } from "@vue/test-utils";
 import { mountRootParcel, type ParcelProps } from "single-spa";
-import Parcel from "./parcel.js";
+import Parcel from "@/parcel.js";
 import type { VueWrapper } from "@vue/test-utils/dist/vueWrapper";
 
 describe("Parcel", () => {
@@ -221,11 +221,13 @@ function createParcelConfig(opts = {}) {
       button.id = "parcel";
       props.domElement.appendChild(button);
       result.mounted = true;
+      // @ts-expect-error - Can be ignored for testing
       result.props = props;
     },
     async unmount(props: ParcelProps) {
       props.domElement.querySelector("button")?.remove();
       result.mounted = false;
+      // @ts-expect-error - Can be ignored for testing
       result.props = props;
     },
     mounted: false,
@@ -233,7 +235,9 @@ function createParcelConfig(opts = {}) {
     numUpdates: 0,
   };
 
+  // @ts-expect-error - Can be ignored for testing
   if (opts.update) {
+    // @ts-expect-error - Can be ignored for testing
     result.update = async (props) => {
       result.props = props;
       result.numUpdates++;

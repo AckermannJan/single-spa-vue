@@ -36,7 +36,7 @@ function createConfig(format) {
           tsconfig: "./tsconfig.build.json",
         }),
       ],
-      external: ["vue", "vue2"],
+      external: ["vue"],
     },
   ];
 }

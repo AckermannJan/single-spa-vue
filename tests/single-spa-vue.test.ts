@@ -1,12 +1,12 @@
-import singleSpaVue from "./single-spa-vue";
-import { SingleSpaVueOpts } from "./types";
+import singleSpaVue from "@/single-spa-vue";
+import { SingleSpaVueOpts } from "@/types";
 import type { Mock, MockInstance } from "vitest";
 // @ts-expect-error - `css.escape` has no types
 import cssEscape from "css.escape";
 import type { VueConstructor } from "vue2";
 import Vue from "vue2";
 import { createApp, h, h as H } from "vue";
-import { AppProps } from "single-spa";
+import { AppProps, CustomProps, ParcelProps } from "single-spa";
 
 const domElId = `single-spa-application:test-app`;
 const cssSelector = `#single-spa-application\\:test-app`;
@@ -18,14 +18,17 @@ interface ExtendedWindow extends Window {
   };
 }
 
+type TestProps = AppProps & CustomProps & ParcelProps;
+
 describe("single-spa-vue", () => {
-  let props: AppProps & Record<number, any> & Record<string, any>;
+  let props: TestProps;
 
   vi.stubGlobal("CSS", {
     escape: (str: string) => cssEscape(str),
   });
 
   beforeEach(() => {
+    // @ts-expect-error - We dont want to provide domElement in props for testing
     props = { name: "test-app", mountParcel: vi.fn(), singleSpa: vi.fn() };
   });
 
@@ -298,6 +301,7 @@ describe("single-spa-vue", () => {
     });
     await lifecycles.bootstrap(props);
     const instance = (await lifecycles.mount(props)) as Vue;
+    // @ts-expect-error - Can be ignored for testing
     expect(instance.$options.something).toBe("random");
     await lifecycles.unmount(props);
   });
@@ -315,6 +319,7 @@ describe("single-spa-vue", () => {
     await lifecycles.bootstrap(props);
     await lifecycles.mount(props);
     const instance = (await lifecycles.mount(props)) as Vue;
+    // @ts-expect-error - Can be ignored for testing
     expect(instance.$options.something).toBe("random");
     return lifecycles.unmount(props);
   });
@@ -448,7 +453,7 @@ describe("single-spa-vue", () => {
     });
 
     const obj1 = {
-      props: props as AppProps,
+      props: props as TestProps,
       spy: undefined,
     };
     const obj2 = {
@@ -456,7 +461,7 @@ describe("single-spa-vue", () => {
       spy: undefined,
     };
 
-    async function mount(obj: { props: AppProps; spy?: MockInstance }) {
+    async function mount(obj: { props: TestProps; spy?: MockInstance }) {
       const instance = await lifecycles.mount(obj.props);
       expect(instance instanceof Vue).toBeTruthy();
       const oldDestroy = (instance as Vue).$destroy;
@@ -466,7 +471,7 @@ describe("single-spa-vue", () => {
       obj.spy = vi.spyOn(instance, "$destroy");
     }
 
-    async function unmount(obj: { props: AppProps; spy?: MockInstance }) {
+    async function unmount(obj: { props: TestProps; spy?: MockInstance }) {
       expect(obj.spy).not.toBeCalled();
       await lifecycles.unmount(obj.props);
       expect(obj.spy).toBeCalled();
@@ -475,10 +480,12 @@ describe("single-spa-vue", () => {
     await lifecycles.bootstrap(props);
     await mount(obj1);
     expect(document.getElementsByClassName("test").length).toBe(1);
+    // @ts-expect-error - Can be ignored for testing
     await mount(obj2);
     expect(document.getElementsByClassName("test").length).toBe(2);
     await unmount(obj1);
     expect(document.getElementsByClassName("test").length).toBe(1);
+    // @ts-expect-error - Can be ignored for testing
     await unmount(obj2);
     expect(document.getElementsByClassName("test").length).toBe(0);
   });
@@ -514,7 +521,8 @@ describe("single-spa-vue", () => {
   });
 
   it(`works with Vue 3 when you provide the createApp function opt`, async () => {
-    const props: AppProps = {
+    // @ts-expect-error - We dont want to provide domElement in props for testing
+    const props: TestProps = {
       name: "vue3-app",
       mountParcel: vi.fn(),
       singleSpa: vi.fn(),
@@ -553,7 +561,8 @@ describe("single-spa-vue", () => {
 
     createApp.mockReturnValue(appMock);
 
-    const props: AppProps = {
+    // @ts-expect-error - We dont want to provide domElement in props for testing
+    const props: TestProps = {
       name: "vue3-app",
       mountParcel: vi.fn(),
       singleSpa: vi.fn(),
@@ -627,7 +636,8 @@ describe("single-spa-vue", () => {
 
     createApp.mockReturnValue(appMock);
 
-    const props: AppProps = {
+    // @ts-expect-error - We dont want to provide domElement in props for testing
+    const props: TestProps = {
       name: "vue3-app",
       mountParcel: vi.fn(),
       singleSpa: vi.fn(),
