@@ -1,7 +1,7 @@
 import { mount } from "@vue/test-utils";
-import { mountRootParcel, ParcelProps } from "single-spa";
+import { mountRootParcel, type ParcelProps } from "single-spa";
 import Parcel from "./parcel.js";
-import { VueWrapper } from "@vue/test-utils/dist/vueWrapper";
+import type { VueWrapper } from "@vue/test-utils/dist/vueWrapper";
 
 describe("Parcel", () => {
   let wrapper: VueWrapper<any> | null = null;

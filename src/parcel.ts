@@ -1,6 +1,6 @@
 import * as Vue from "vue";
-import { RenderedComponentProps, Action } from "@/types";
-import { Parcel, ParcelConfig, ParcelProps } from "single-spa";
+import type { RenderedComponentProps, Action } from "@/types";
+import type { Parcel, ParcelConfig, ParcelProps } from "single-spa";
 
 export default Vue.defineComponent({
   props: {

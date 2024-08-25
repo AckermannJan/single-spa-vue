@@ -1,5 +1,5 @@
 import type { Component, ComponentOptions, h as H } from "vue-demi";
-import {
+import type {
   SingleSpaVueOpts,
   SingleSpaOptsVue2,
   SingleSpaOptsVue3,
@@ -11,7 +11,7 @@ import {
   InstanceVue3,
   VueLifecycles,
 } from "@/types";
-import { AppProps, ParcelProps } from "single-spa";
+import type { AppProps, ParcelProps } from "single-spa";
 
 export default function singleSpaVue<ExtraProps>(
   opts: SingleSpaVueOpts,
