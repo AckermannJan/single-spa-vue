@@ -1,36 +1,21 @@
 import * as Vue from "vue";
-
-interface RenderedComponentProps {
-  ref: string;
-  class?: string;
-  style?: object;
-}
-
-type Actions = "mount" | "unmount" | "update";
-
-interface ParcelProps {
-  domElement: HTMLElement;
-  [key: string]: unknown;
-}
-
-interface Parcel {
-  mountPromise: Promise<void>;
-  unmount: () => Promise<void>;
-  update?: (props: ParcelProps) => Promise<void>;
-  getStatus: () => string;
-}
+import { RenderedComponentProps, Action } from "@/types";
+import { Parcel, ParcelConfig, ParcelProps } from "single-spa";
 
 export default Vue.defineComponent({
   props: {
-    config: [Object, Promise],
-    wrapWith: String,
-    wrapClass: String,
-    wrapStyle: Object,
+    config: {
+      type: Object as () => ParcelConfig,
+      required: true,
+    },
     mountParcel: {
       type: Function,
       required: true,
     },
-    parcelProps: Object,
+    wrapWith: String,
+    wrapClass: String,
+    wrapStyle: Object,
+    parcelProps: Object as () => Record<string, any> & Record<number, any>,
   },
   render(h: typeof Vue.h | undefined) {
     h = typeof h === "function" ? h : Vue.h;
@@ -55,9 +40,7 @@ export default Vue.defineComponent({
   },
   emits: ["parcelError", "parcelMounted", "parcelUpdated"],
   methods: {
-    // Todo: Define the type of the thing function
-    // eslint-disable-next-line
-    async addThingToDo(action: Actions, thing: Function) {
+    async addThingToDo(action: Action, thing: () => Promise<void>) {
       if (this.hasError && action !== "unmount") {
         return;
       }
@@ -91,7 +74,7 @@ export default Vue.defineComponent({
       this.$emit("parcelMounted");
     },
     async singleSpaUnmount() {
-      if (this.parcel?.getStatus() === "mounted") {
+      if (this.parcel?.getStatus() === "MOUNTED") {
         await this.parcel.unmount();
       }
     },
@@ -109,7 +92,7 @@ export default Vue.defineComponent({
       };
     },
   },
-  mounted() {
+  async mounted() {
     if (!this.config) {
       throw Error(`single-spa-vue: <parcel> component requires a config prop.`);
     }
@@ -121,15 +104,15 @@ export default Vue.defineComponent({
     }
 
     if (this.config) {
-      this.addThingToDo("mount", this.singleSpaMount);
+      await this.addThingToDo("mount", this.singleSpaMount);
     }
   },
-  unmounted() {
-    this.addThingToDo("unmount", this.singleSpaUnmount);
+  async unmounted() {
+    await this.addThingToDo("unmount", this.singleSpaUnmount);
   },
   watch: {
-    parcelProps() {
-      this.addThingToDo("update", this.singleSpaUpdate);
+    async parcelProps() {
+      await this.addThingToDo("update", this.singleSpaUpdate);
     },
   },
 });

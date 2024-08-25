@@ -1,136 +1,76 @@
-import type {
-  App,
-  ComponentPublicInstance,
-  Component,
-  CreateAppFunction,
-  ComponentOptions,
-  Vue2,
-  h as H,
-} from "vue-demi";
-type Vue = typeof Vue2;
+import type { Component, ComponentOptions, h as H } from "vue-demi";
+import {
+  SingleSpaVueOpts,
+  SingleSpaOptsVue2,
+  SingleSpaOptsVue3,
+  AppOptions,
+  AppOptionsObject,
+  AppOptionsFunction,
+  Instance,
+  InstanceVue2,
+  InstanceVue3,
+  VueLifecycles,
+} from "@/types";
+import { AppProps, ParcelProps } from "single-spa";
 
-export interface AppOptionsObject extends ComponentOptions<any> {
-  el?: string | HTMLElement;
-  [key: string]: unknown;
-}
-
-export type AppOptionsFunction = (
+export default function singleSpaVue<ExtraProps>(
   opts: SingleSpaVueOpts,
-  props: object,
-) => Promise<AppOptionsObject>;
-
-export type AppOptions = AppOptionsObject | AppOptionsFunction;
-
-export interface BaseSingleSpaVueOptions {
-  template?: string;
-  loadRootComponent?(): Promise<Component>;
-  replaceMode?: boolean;
-  rootComponent?: Component;
-}
-
-export type SingleSpaOptsVue2 = BaseSingleSpaVueOptions & {
-  vueVersion: 2;
-  appOptions: AppOptions;
-  Vue: Vue;
-  handleInstance?(app: Vue, props: Props): Promise<void> | void;
-};
-
-export type SingleSpaOptsVue3 = BaseSingleSpaVueOptions & {
-  vueVersion: 3;
-  appOptions: AppOptions;
-  createApp: CreateAppFunction<Element>;
-  handleInstance?(app: App, props: Props): Promise<void> | void;
-};
-
-export type SingleSpaVueOpts = SingleSpaOptsVue2 | SingleSpaOptsVue3;
-
-export interface BaseInstance {
-  domEl?: HTMLElement;
-  root?: ComponentPublicInstance;
-  [key: string]: unknown;
-}
-
-export type InstanceVue2 = BaseInstance & {
-  vueInstance?: Vue;
-};
-
-export type InstanceVue3 = BaseInstance & {
-  vueInstance?: App<Element>;
-};
-
-export type Instance = InstanceVue2 | InstanceVue3;
-
-export interface Props {
-  name: string;
-  mountParcel: object; // TODO: Define Parcel type
-  singleSpa: object; // TODO: Define SingleSpa type
-  domElement: HTMLElement;
-  [key: string]: unknown;
-}
-
-class SingleSpaVue {
-  private readonly opts: SingleSpaVueOpts;
-
-  constructor(userOpts: SingleSpaVueOpts) {
-    if (typeof userOpts !== "object") {
-      throw new Error(`single-spa-vue requires a configuration object`);
-    }
-
-    this.opts = userOpts;
-
-    if (!this.isVue2(this.opts) && !this.isVue3(this.opts)) {
-      throw Error("single-spa-vue must be passed opts.Vue or opts.createApp");
-    }
-
-    if (
-      this.isAppOptionsObject(this.opts.appOptions) &&
-      this.opts.appOptions.el &&
-      typeof this.opts.appOptions.el !== "string" &&
-      !(this.opts.appOptions.el instanceof HTMLElement)
-    ) {
-      throw Error(
-        `single-spa-vue: appOptions.el must be a string CSS selector, an HTMLElement, or not provided at all. Was given ${typeof this
-          .opts.appOptions.el}`,
-      );
-    }
-
-    // @ts-expect-error - If the user has provided createApp via the Vue option, we are moving it to the correct createApp option
-    this.opts.createApp =
-      // @ts-expect-error - If the user has provided createApp via the Vue option, we are moving it to the correct createApp option
-      this.opts.createApp || (this.opts.Vue && this.opts.Vue.createApp);
-  }
-
-  private isVue2(opts: SingleSpaVueOpts): opts is SingleSpaOptsVue2 {
+): VueLifecycles<ExtraProps> {
+  const isVue2 = (opts: SingleSpaVueOpts): opts is SingleSpaOptsVue2 => {
     return (opts as SingleSpaOptsVue2).Vue !== undefined;
-  }
+  };
 
-  private isVue3(opts: SingleSpaVueOpts): opts is SingleSpaOptsVue3 {
+  const isVue3 = (opts: SingleSpaVueOpts): opts is SingleSpaOptsVue3 => {
     return (opts as SingleSpaOptsVue3).createApp !== undefined;
-  }
+  };
 
-  private isAppOptionsObject(opts: AppOptions): opts is AppOptionsObject {
+  const isAppOptionsObject = (opts: AppOptions): opts is AppOptionsObject => {
     return (opts as AppOptionsObject).el !== undefined;
+  };
+
+  if (typeof opts !== "object") {
+    throw new Error(`single-spa-vue requires a configuration object`);
   }
 
-  private async resolveAppOptions(
+  if (!isVue2(opts) && !isVue3(opts)) {
+    throw Error("single-spa-vue must be passed opts.Vue or opts.createApp");
+  }
+
+  if (
+    isAppOptionsObject(opts.appOptions) &&
+    opts.appOptions.el &&
+    typeof opts.appOptions.el !== "string" &&
+    !(opts.appOptions.el instanceof HTMLElement)
+  ) {
+    throw Error(
+      `single-spa-vue: appOptions.el must be a string CSS selector, an HTMLElement, or not provided at all. Was given ${typeof opts.appOptions.el}`,
+    );
+  }
+
+  // @ts-expect-error - If the user has provided createApp via the Vue option, we are moving it to the correct createApp option
+  opts.createApp =
+    // @ts-expect-error - If the user has provided createApp via the Vue option, we are moving it to the correct createApp option
+    opts.createApp || (opts.Vue && opts.Vue.createApp);
+
+  const resolveAppOptions = async (
     opts: SingleSpaVueOpts,
-    props: Props,
-  ): Promise<AppOptionsObject> {
+    props: ExtraProps & AppProps,
+  ): Promise<AppOptionsObject> => {
     if (typeof opts.appOptions === "function") {
       return (opts.appOptions as AppOptionsFunction)(opts, props);
     } else {
       return Promise.resolve({ ...opts.appOptions });
     }
-  }
+  };
 
-  public async mount(
+  const mount = async (
     opts: SingleSpaVueOpts,
     mountedInstances: Record<string, Instance>,
-    props: Props,
-  ): Promise<Vue | App<Element>> {
+    props: ExtraProps & AppProps & ParcelProps,
+  ) => {
     await Promise.resolve();
     const instance: Instance = {};
-    const appOptions = await this.resolveAppOptions(opts, props);
+    const appOptions = await resolveAppOptions(opts, props);
     if (props.domElement && !appOptions.el) {
       appOptions.el = props.domElement;
     }
@@ -185,7 +125,7 @@ class SingleSpaVue {
       appOptions.data = () => ({});
     }
     const originData = appOptions.data;
-    appOptions.data = () => {
+    appOptions.data = function () {
       const data =
         typeof originData === "function"
           ? originData.call(this, this)
@@ -193,7 +133,7 @@ class SingleSpaVue {
       return { ...data, ...props };
     };
 
-    if (this.isVue3(opts)) {
+    if (isVue3(opts)) {
       const currentInstance = instance as InstanceVue3;
       currentInstance.vueInstance = opts.createApp(
         appOptions as unknown as ComponentOptions<any>,
@@ -230,83 +170,81 @@ class SingleSpaVue {
         return currentInstance.vueInstance;
       }
     }
-  }
+  };
 
-  public async unmount(
-    opts: SingleSpaVueOpts,
-    mountedInstances: Record<string, Instance>,
-    props: Props,
-  ): Promise<Record<string, Instance>> {
-    await Promise.resolve();
-    const instance = mountedInstances[props.name];
-    if (!mountedInstances[props.name]) {
-      return mountedInstances;
-    }
-
-    if (this.isVue3(opts)) {
-      const currentInstance = instance as InstanceVue3;
-      currentInstance.vueInstance?.unmount();
-    } else {
-      const currentInstance = instance as InstanceVue2;
-      currentInstance.vueInstance?.$destroy();
-    }
-    delete instance.vueInstance;
-
-    if (instance.domEl) {
-      instance.domEl.innerHTML = "";
-      delete instance.domEl;
-    }
-
-    // Delete the instance completely
-    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-    delete mountedInstances[props.name];
-    return mountedInstances;
-  }
-
-  public async update(
-    opts: SingleSpaVueOpts,
-    mountedInstances: Record<string, Instance>,
-    props: Props,
-  ): Promise<void> {
-    await Promise.resolve();
-    const instance = mountedInstances[props.name];
-    const optsAppOptions = opts.appOptions as AppOptionsObject;
-
-    if (!instance) {
-      return;
-    }
-
-    const data: Props | Pick<AppOptionsObject, "data"> = {
-      ...(optsAppOptions.data || {}),
-      ...props,
-    };
-
-    const root = instance.root || instance.vueInstance;
-    for (const prop in data) {
-      root[prop] = data[prop];
-    }
-  }
-
-  public async bootstrap(opts: SingleSpaVueOpts) {
+  const bootstrap = async (opts: SingleSpaVueOpts) => {
     if (opts.loadRootComponent) {
       const root = await opts.loadRootComponent();
       return (opts.rootComponent = root);
     } else {
       return Promise.resolve();
     }
-  }
-}
+  };
 
-export default function (opts: SingleSpaVueOpts) {
-  const singleSpaVue = new SingleSpaVue(opts);
+  const update = async (
+    opts: SingleSpaVueOpts,
+    mountedInstances: Record<string, Instance>,
+    props: ExtraProps & AppProps,
+  ) => {
+    return new Promise((resolve) => {
+      const instance = mountedInstances[props.name];
+      const optsAppOptions = opts.appOptions as AppOptionsObject;
+
+      if (!instance) {
+        resolve(null);
+      }
+
+      const data: ExtraProps = {
+        ...(optsAppOptions.data || {}),
+        ...props,
+      };
+
+      const root = instance.root || instance.vueInstance;
+      for (const prop in data) {
+        root[prop] = data[prop];
+      }
+      resolve(null);
+    });
+  };
+
+  const unmount = async (
+    opts: SingleSpaVueOpts,
+    mountedInstances: Record<string, Instance>,
+    props: ExtraProps & AppProps,
+  ) => {
+    return new Promise((resolve) => {
+      const instance = mountedInstances[props.name];
+      if (!mountedInstances[props.name]) {
+        resolve(mountedInstances);
+      }
+
+      if (isVue3(opts)) {
+        const currentInstance = instance as InstanceVue3;
+        currentInstance.vueInstance?.unmount();
+      } else {
+        const currentInstance = instance as InstanceVue2;
+        currentInstance.vueInstance?.$destroy();
+      }
+      delete instance.vueInstance;
+
+      if (instance.domEl) {
+        instance.domEl.innerHTML = "";
+        delete instance.domEl;
+      }
+
+      // Delete the instance completely
+      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+      delete mountedInstances[props.name];
+      resolve(mountedInstances);
+    });
+  };
+
   const mountedInstances: Record<string, Instance> = {};
 
   return {
-    bootstrap: () => singleSpaVue.bootstrap(opts),
-    mount: (props: Props) => singleSpaVue.mount(opts, mountedInstances, props),
-    unmount: (props: Props) =>
-      singleSpaVue.unmount(opts, mountedInstances, props),
-    update: (props: Props) =>
-      singleSpaVue.update(opts, mountedInstances, props),
+    bootstrap: () => bootstrap(opts),
+    mount: (props) => mount(opts, mountedInstances, props),
+    unmount: (props) => unmount(opts, mountedInstances, props),
+    update: (props) => update(opts, mountedInstances, props),
   };
 }
